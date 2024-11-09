@@ -27,6 +27,8 @@ def flatten_json(nested_json, prefix=''):
     flat_dict = {}
     for key, value in nested_json.items():
         new_key = f"{prefix}{key}" if prefix == '' else f"{prefix}-{key}"
+        if value is None:
+            continue
 
         if isinstance(value, dict):
             flat_dict.update(flatten_json(value, new_key))
@@ -44,6 +46,13 @@ def json_to_csv(json_data, auction_folder, auction_id):
         writer = csv.DictWriter(file, fieldnames=json_data.keys())
         writer.writeheader()
         writer.writerow(json_data)
+    print(f"[INFO]: Data for auction {auction_id} saved as CSV in {auction_folder}.")
+
+
+def download_json(json_data, auction_folder, auction_id):
+    path = os.path.join(auction_folder, f"response_{auction_id}.json")
+    with open(path, mode='w', encoding='utf-8') as file:
+        json.dump(json_data, file, indent=4, ensure_ascii=False)
     print(f"[INFO]: Data for auction {auction_id} saved as CSV in {auction_folder}.")
 
 
@@ -65,7 +74,8 @@ async def process_auction_page(auction_id):
                 await download_file(file["id"], file["name"], auction_folder)
 
             flattened_data = flatten_json(data)
-            json_to_csv(flattened_data, auction_folder, auction_id)
+            # json_to_csv(flattened_data, auction_folder, auction_id)
+            download_json(flattened_data, auction_folder, auction_id)
 
         except json.JSONDecodeError:
             print(f"[ERROR]: Invalid answer from auction {auction_id}. The response is not valid JSON.")
@@ -75,9 +85,10 @@ async def process_auction_page(auction_id):
 
 async def main():
     # may be modified for async parsing
-    for i in range(50849, 9281689):
-        await process_auction_page(i)
-    print("[INFO]: Processing completed.")
+    await process_auction_page(9869986)
+    # for i in range(50849, 9281689):
+    #     await process_auction_page(i)
+    # print("[INFO]: Processing completed.")
 
 
 if __name__ == "__main__":
