@@ -2,6 +2,10 @@ import re
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes, ConversationHandler
 from telegram.ext import ApplicationBuilder, CommandHandler
+
+from analyzer import scan_files
+from parsing.WebParser import process_auction_page
+
 BOT_TOKEN = "7781043930:AAElBpRaGjjV6didS-WExBNTvfeTBdGE1jk"
 BOT_MENU = "Выберете параметры для проверки котировочной сессии на корректность:\n     1. Проверка наименования закупки \n     2. Проверка Обеспечения исполнения контракта\n     3. Проверка Наличие сертификатов/лицензий\n     4. Проверка Графика поставки и Этапов поставки\n     5. Проверка Максимального и Начального значения цены контракта\n     6. Проверка Характеристики спецификации закупки\n"
 
@@ -45,21 +49,29 @@ async def receive_option(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
         url = context.user_data.get("url")
         await update.message.reply_text(f"Вы выбрали параметры {selected_options} для URL: {url}")
-
+        await analyze_ulr(context)
         await update.message.reply_text("Введите новый URL:")
         return AWAIT_URL
 
     elif option in OPTIONS[:-1]:
         context.user_data["selected_options"].append(option)
-        await update.message.reply_text(f"Параметр '{option}' добавлен. Выберите еще или нажмите 'Начать' для продолжения.")
+        await update.message.reply_text(
+            f"Параметр '{option}' добавлен. Выберите еще или нажмите 'Начать' для продолжения.")
         return AWAIT_OPTION
 
     else:
         reply_markup = ReplyKeyboardMarkup([OPTIONS], one_time_keyboard=True)
         await update.message.reply_text(BOT_MENU, reply_markup=reply_markup)
-        await update.message.reply_text("Выберете параметры, нажмите 'Начать' чтобы продолжить:", reply_markup=reply_markup)
+        await update.message.reply_text("Выберете параметры, нажмите 'Начать' чтобы продолжить:",
+                                        reply_markup=reply_markup)
         return AWAIT_OPTION
 
+
+async def analyze_ulr(context: ContextTypes.DEFAULT_TYPE):
+    auction_id = context.user_data.get("url").split("/")[-1]
+    print(auction_id)
+    await process_auction_page(auction_id)
+    await scan_files(auction_id)
 
 
 def main():

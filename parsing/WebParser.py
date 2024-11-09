@@ -15,7 +15,7 @@ async def download_file(file_id, file_name, auction_folder):
         response = await client.get(file_url)
 
     if response.status_code == 200:
-        file_path = os.path.join(auction_folder, file_name)
+        file_path = os.path.join(auction_folder, file_name.replace(" ",""))
         with open(file_path, 'wb') as file:
             file.write(response.content)
         print(f"[INFO]: File {file_name} saved in folder {auction_folder}.")
