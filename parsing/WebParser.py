@@ -39,16 +39,6 @@ def flatten_json(nested_json, prefix=''):
             flat_dict[new_key] = value
     return flat_dict
 
-
-def json_to_csv(json_data, auction_folder, auction_id):
-    output_csv = os.path.join(auction_folder, f"response_{auction_id}.csv")
-    with open(output_csv, mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.DictWriter(file, fieldnames=json_data.keys())
-        writer.writeheader()
-        writer.writerow(json_data)
-    print(f"[INFO]: Data for auction {auction_id} saved as CSV in {auction_folder}.")
-
-
 def download_json(json_data, auction_folder, auction_id):
     path = os.path.join(auction_folder, f"response_{auction_id}.json")
     with open(path, mode='w', encoding='utf-8') as file:
@@ -82,14 +72,14 @@ async def process_auction_page(auction_id):
     else:
         print(f"[ERROR]: Failed to fetch data for auction {auction_id}. Status code: {response.status_code}")
 
-
-async def main():
-    # may be modified for async parsing
-    await process_auction_page(9869986)
-    # for i in range(50849, 9281689):
-    #     await process_auction_page(i)
-    # print("[INFO]: Processing completed.")
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+#
+# async def main():
+#     # may be modified for async parsing
+#     await process_auction_page(9869986)
+#     # for i in range(50849, 9281689):
+#     #     await process_auction_page(i)
+#     # print("[INFO]: Processing completed.")
+#
+#
+# if __name__ == "__main__":
+#     asyncio.run(main())

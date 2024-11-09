@@ -50,5 +50,5 @@ class File:
         else:
             print("[ERROR] ФАЙЛ НЕ ДОСТУПЕН. СОЗДАНИЕ КОНСТРУКТОРА ОСТАНОВЛЕНО.")
 
-pdfExample = File("parsing/downloaded_files/9869986/test.pdf")
+pdfExample = File("downloaded_files/9869986/test.pdf")
 pdfExample.read_data()
