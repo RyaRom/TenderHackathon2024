@@ -1,6 +1,7 @@
 import os
 import json
 
+
 def find_first_pdf_and_doc(directory):
     pdf_path = None
     doc_path = None
@@ -21,14 +22,14 @@ def find_first_pdf_and_doc(directory):
 
     return pdf_path, doc_path
 
+
 async def scan_files(auction_id):
     web_page_json = f"downloaded_files/{auction_id}/response_{auction_id}.json"
     doc_file, pdf_contract = find_first_pdf_and_doc("downloaded_files")
     print(f"{web_page_json}, {doc_file}, {pdf_contract}")
 
     with open(web_page_json, 'r', encoding="UTF-8") as file:
-        lxr = ''.join(file.readlines())
+        data = json.load(file)
 
-    title = data["customer-name"]
-    title2 = data["createdByCustomer-name"]
-    print(f"{title} {title2}")
+    title = data.get('customer-name')
+    print(f"{title}")
