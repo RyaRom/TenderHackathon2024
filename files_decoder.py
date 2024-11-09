@@ -7,22 +7,14 @@ class File:
     USABLE_SIGNATURES = ["pdf", "txt", "doc", "docx", "xls", "xlsx"]
 
     def read_pdf(self):
-        # Создаём словарь для извлечения текста из каждого изображения
         text_result = {}
-        # Извлекаем страницы из PDF
         for number, page in enumerate(extract_pages(self.filename)):
-            # Находим все элементы
             page_elements = [(element.y1, element) for element in page._objs]
-            # Сортируем все элементы по порядку нахождения на странице
             page_elements.sort(key=lambda a: a[0], reverse=True)
             page_text = []
-            # Находим элементы, составляющие страницу
             for i, elem in enumerate(page_elements):
-                # Проверяем, является ли элемент текстовым
                 if isinstance(elem[1], LTTextContainer):
-                    # Добавляем текст каждой строки к тексту страницы
                     page_text.append(elem[1].get_text())
-            # Добавляем список списков как значение ключа страницы
             text_result[number] = [page_text]
         return [''.join(text_result[i][0]) for i in text_result.keys()]
 
