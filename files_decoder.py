@@ -49,3 +49,6 @@ class File:
             self.data = self.read_data()
         else:
             print("[ERROR] ФАЙЛ НЕ ДОСТУПЕН. СОЗДАНИЕ КОНСТРУКТОРА ОСТАНОВЛЕНО.")
+
+pdfExample = File("parsing/downloaded_files/9869986/test.pdf")
+pdfExample.read_data()
