@@ -53,6 +53,14 @@ async def receive_option(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await update.message.reply_text("Введите новый URL:")
         return AWAIT_URL
 
+    elif option == "Все":
+        selected_options = ["1", "2", "3", "4", "5", "6"]
+        url = context.user_data.get("url")
+        await update.message.reply_text(f"Вы выбрали параметры {selected_options} для URL: {url}")
+        await analyze_ulr(update, context)
+        await update.message.reply_text("Введите новый URL:")
+        return AWAIT_URL
+
     elif option in OPTIONS[:-1]:
         context.user_data["selected_options"].append(option)
         await update.message.reply_text(
@@ -67,11 +75,14 @@ async def receive_option(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         return AWAIT_OPTION
 
 
-async def analyze_ulr(context: ContextTypes.DEFAULT_TYPE):
+async def analyze_ulr(update: Update, context: ContextTypes.DEFAULT_TYPE):
     auction_id = context.user_data.get("url").split("/")[-1]
     print(auction_id)
     await process_auction_page(auction_id)
-    await scan_files(auction_id)
+    result = await scan_files(auction_id, context.user_data.get("selected_options"))
+    for index, res in result:
+        if res:
+            await update.message.reply_text(f"Требование {index + 1} выполнено")
 
 
 def main():
