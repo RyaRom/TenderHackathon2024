@@ -44,7 +44,6 @@ class File:
                 return i
         return "txt"
 
-    # Конструктор для нашего класса.
     def __init__(self, filename, signature="NULL_FILE_SIGNATURE"):
         is_exist = os.path.exists(filename)
         if is_exist:
