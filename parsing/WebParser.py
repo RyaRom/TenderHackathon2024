@@ -1,15 +1,18 @@
 import os
-import requests
+
+import asyncio
+import httpx
 import json
 import csv
-from time import sleep
 
 base_url = "https://zakupki.mos.ru/newapi/api/Auction/Get?auctionId="
 
 
-def download_file(file_id, file_name, auction_folder):
+async def download_file(file_id, file_name, auction_folder):
+    print("downloading")
     file_url = f"https://zakupki.mos.ru/newapi/api/FileStorage/Download?id={file_id}"
-    response = requests.get(file_url)
+    async with httpx.AsyncClient() as client:
+        response = await client.get(file_url)
 
     if response.status_code == 200:
         file_path = os.path.join(auction_folder, file_name)
@@ -44,9 +47,11 @@ def json_to_csv(json_data, auction_folder, auction_id):
     print(f"[INFO]: Data for auction {auction_id} saved as CSV in {auction_folder}.")
 
 
-def process_auction_page(auction_id):
+async def process_auction_page(auction_id):
+    print(f"[INFO]: Processing auction with ID {auction_id}")
     auction_url = f"{base_url}{auction_id}"
-    response = requests.get(auction_url)
+    async with httpx.AsyncClient() as client:
+        response = await client.get(auction_url)
 
     if response.status_code == 200:
         try:
@@ -57,9 +62,8 @@ def process_auction_page(auction_id):
                 os.makedirs(auction_folder)
 
             for file in files:
-                download_file(file["id"], file["name"], auction_folder)
+                await download_file(file["id"], file["name"], auction_folder)
 
-            # Преобразуем данные в "плоский" формат и сохраняем в CSV
             flattened_data = flatten_json(data)
             json_to_csv(flattened_data, auction_folder, auction_id)
 
@@ -69,10 +73,12 @@ def process_auction_page(auction_id):
         print(f"[ERROR]: Failed to fetch data for auction {auction_id}. Status code: {response.status_code}")
 
 
-if __name__ == "__main__":
-    for auction_id in range(50849, 9281689):
-        print(f"[INFO]: Processing auction with ID {auction_id}")
-        process_auction_page(auction_id)
-        # sleep(1)
-
+async def main():
+    # may be modified for async parsing
+    for i in range(50849, 9281689):
+        await process_auction_page(i)
     print("[INFO]: Processing completed.")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
