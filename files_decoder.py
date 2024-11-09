@@ -1,33 +1,12 @@
 import os
 from pdfminer.high_level import extract_pages, extract_text
-from pdfminer.layout import LTTextContainer, LTChar, LTRect, LTFigure
+from pdfminer.layout import LTTextContainer, LTChar, LTRect
 import PyPDF2
 import pdfplumber
 
 
-class MYFILE:
+class File:
     USABLE_SIGNATURES = ["pdf", "txt", "doc", "docx", "xls", "xlsx"]
-
-    def text_extraction(self, element):
-        # Извлекаем текст из вложенного текстового элемента
-        line_text = element.get_text()
-
-        # Находим форматы текста
-        line_formats = []
-        for text_line in element:
-            if isinstance(text_line, LTTextContainer):
-                # Итеративно обходим каждый символ в строке текста
-                for character in text_line:
-                    if isinstance(character, LTChar):
-                        # Добавляем к символу название шрифта
-                        line_formats.append(character.fontname)
-                        # Добавляем к символу размер шрифта
-                        line_formats.append(character.size)
-        # Находим уникальные размеры и названия шрифтов в строке
-        format_per_line = list(set(line_formats))
-
-        # Возвращаем кортеж с текстом в каждой строке вместе с его форматом
-        return (line_text, format_per_line)
 
     def read_pdf(self):
         # создаём объект файла PDF
@@ -41,7 +20,6 @@ class MYFILE:
 
             # текст со страницы
             page_text = []
-            line_format = []
             text_from_tables = []
             page_content = []
             # Инициализируем количество исследованных таблиц
@@ -70,11 +48,11 @@ class MYFILE:
                     # Проверяем, находится ли текст в таблице
                     if table_extraction_flag == False:
                         # Используем функцию извлечения текста и формата для каждого текстового элемента
-                        (line_text, format_per_line) = self.text_extraction(element)
+                        line_text = element.get_text()
                         # Добавляем текст каждой строки к тексту страницы
                         page_text.append(line_text)
                         # Добавляем формат каждой строки, содержащей текст
-                        line_format.append(format_per_line)
+                        # line_format.append(format_per_line)
                         page_content.append(line_text)
                     else:
                         # Пропускаем текст, находящийся в таблице
@@ -83,10 +61,11 @@ class MYFILE:
             # Создаём ключ для словаря
             dctkey = 'Page_' + str(number)
             # Добавляем список списков как значение ключа страницы
-            text_result[dctkey] = [page_text, line_format, text_from_tables, page_content]
+            text_result[dctkey] = [page_text, text_from_tables, page_content]
 
-        # Удаляем содержимое страницы
-        result = ''.join(text_result['Page_0'][4])
+        result = []
+        for i in text_result.keys():
+            result.append(''.join(text_result[i][2]))
         f.close()
         return result
 
