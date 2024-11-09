@@ -1,10 +1,21 @@
 import os
 from pdfminer.high_level import extract_pages
 from pdfminer.layout import LTTextContainer
+from docx import Document
 
 
-class File:
+class FileHolder:
     USABLE_SIGNATURES = ["pdf", "txt", "doc", "docx", "xls", "xlsx"]
+
+    def read_docx(self):
+        text_result = {}
+        doc = Document(self.filename)
+
+        for number, paragraph in enumerate(doc.paragraphs):
+            if paragraph.text.strip():
+                text_result[number] = paragraph.text
+
+        return [text for text in text_result.values()]
 
     def read_pdf(self):
         text_result = {}
@@ -22,7 +33,7 @@ class File:
         if self.signature == "pdf":
             return self.read_pdf()
         elif self.signature == "doc" or self.signature == "docx":
-            pass
+            return self.read_docx()
         elif self.signature == "xls" or self.signature == "xlsx":
             pass
         else:
@@ -49,6 +60,3 @@ class File:
             self.data = self.read_data()
         else:
             print("[ERROR] ФАЙЛ НЕ ДОСТУПЕН. СОЗДАНИЕ КОНСТРУКТОРА ОСТАНОВЛЕНО.")
-
-pdfExample = File("downloaded_files/9869986/test.pdf")
-pdfExample.read_data()

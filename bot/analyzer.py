@@ -1,6 +1,6 @@
 import os
 import json
-
+from parsing.FilesDecoder import FileHolder
 
 def find_first_pdf_and_doc(directory):
     pdf_path = None
@@ -33,3 +33,6 @@ async def scan_files(auction_id):
 
     title = data.get('customer-name')
     print(f"{title}")
+    doc = FileHolder(doc_file)
+    pdf = FileHolder(doc_file)
+    print(f"{doc.data[0]}")
