@@ -8,6 +8,10 @@ import csv
 base_url = "https://zakupki.mos.ru/newapi/api/Auction/Get?auctionId="
 
 
+
+
+
+
 async def download_file(file_id, file_name, auction_folder):
     print("downloading")
     file_url = f"https://zakupki.mos.ru/newapi/api/FileStorage/Download?id={file_id}"
