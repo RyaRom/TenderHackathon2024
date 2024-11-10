@@ -23,9 +23,6 @@ def save_to_txt(folder, file_name, text):
         if text:
             txt_file.write(text)
 
-    print(f"[INFO]: Text content saved to {txt_file_path}.")
-
-async def extrude_text(file_id, file_name, auction_folder):
     print("downloading")
     file_url = f"https://zakupki.mos.ru/newapi/api/FileStorage/Download?id={file_id}"
 
