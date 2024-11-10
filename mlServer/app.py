@@ -28,6 +28,8 @@ async def generate_text(request: GenerateRequest):
     try:
         outputs = model.generate(inputs, max_new_tokens=request.max_tokens, temperature=0.2, top_p=0.9, do_sample=True)
         response_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
-        return {response_text}
+        print(response_text)
+        print(request.user_prompt)
+        return response_text
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
