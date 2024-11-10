@@ -33,7 +33,7 @@ async def receive_url(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
 
     reply_markup = ReplyKeyboardMarkup([OPTIONS], one_time_keyboard=True)
     await update.message.reply_text(BOT_MENU, reply_markup=reply_markup)
-    await update.message.reply_text("Выберете параметры, нажмите Начать чтобы продолжить:",
+    await update.message.reply_text("Выберите параметры, нажмите Начать чтобы продолжить:",
                                     reply_markup=reply_markup)
     return AWAIT_OPTION
 

@@ -1,9 +1,8 @@
 import json
 import os
-
-import requests
 import aiohttp
 import asyncio
+
 
 async def send_request(session, user_prompt, system_prompt="", max_tokens=100):
     try:
@@ -13,6 +12,8 @@ async def send_request(session, user_prompt, system_prompt="", max_tokens=100):
     except aiohttp.ClientError as e:
         print(f"Запрос не удался: {e}")
         return None  # Или обработка ошибки по-другому
+
+
 def split_text_by_sentences(text, max_length=2048):
     sentences = text.split('. ')
     chunks = []
@@ -42,7 +43,6 @@ def extract_txt_files_to_list(directory_path):
             with open(file_path, 'r', encoding='utf-8') as file:
                 file_content = file.read()
                 txt_files_content.append(file_content)
-
     return txt_files_content
 
 
@@ -89,8 +89,6 @@ def pt1_check(id):
           }
         }
         """
-        #print(prompt)
-        #answer = send_request(user_prompt=files[0], system_prompt=prompt,max_tokens=200)
         return process_text_and_send_requests(text=files[0],system_prompt=prompt,max_tokens=200)
 
 
@@ -99,6 +97,7 @@ def pt2_check(id):
     with open(f'test/response_{id}.json', encoding='utf-8') as js:
         dict = json.load(js)
         prompt = f'{dict["isContractGuaranteeRequired"]}'
+        print(prompt)
 
 
 def pt3_check(id):
@@ -123,5 +122,5 @@ def pt4_check(id):
 # def pt5_check(id):
 
 
-print(asyncio.run(pt1_check(9869958)))
+print(asyncio.run(pt1_check(9864533)))
 # send_request("hello", "Translate to russian", 50)

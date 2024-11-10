@@ -1,6 +1,5 @@
 import os
 import json
-import mammoth
 from parsing.FilesDecoder import FileHolder
 
 
