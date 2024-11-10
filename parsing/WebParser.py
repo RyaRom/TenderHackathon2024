@@ -11,13 +11,7 @@ BASE_URL = "https://zakupki.mos.ru/newapi/api/Auction/Get?auctionId="
 
 
 # Функция для сохранения данных в текстовый файл
-async def save_to_txt(folder, file_name, text, file_id):
-    # Создаем .txt файл с именем на основе оригинального имени файла
-    txt_file_path = folder + file_name.split('.')[0] + ".txt"
-
-    # Сохранение текста, если он передан
-    with open(txt_file_path, "w", encoding="utf-8") as txt_file:
-        txt_file.write(text)
+async def save_to_txt(folder, file_name, file_id):
     print("downloading")
     file_url = f"https://zakupki.mos.ru/newapi/api/FileStorage/Download?id={file_id}"
 
@@ -27,15 +21,9 @@ async def save_to_txt(folder, file_name, text, file_id):
     if response.status_code == 200:
         file_content = response.content
         file_path = folder + file_name.replace(" ", "")
-
-        # Define the file type using the magic library (determine file MIME type)
         mime_type = magic.from_buffer(file_content, mime=True)
-        print(mime_type)
-
-        # Save the file
         with open(file_path, 'wb') as file:
             file.write(file_content)
-
         print(f"[INFO]: File {file_name} saved in folder {folder}.")
 
         # Output the file content based on its type
@@ -64,16 +52,6 @@ async def save_to_txt(folder, file_name, text, file_id):
         print(f"[ERROR]: Failed to download file {file_name}. Status code: {response.status_code}")
 
 
-def read_doc(file_path):
-    word = win32com.client.Dispatch("Word.Application")
-    word.visible = False
-    doc = word.Documents.Open(file_path)
-    doc_content = doc.Content.Text
-    doc.Close(False)
-    word.Quit()
-    return doc_content
-
-
 def read_pdf(file_content):
     # Reading PDF from content in memory
     with open("temp.pdf", "wb") as temp_pdf:
@@ -93,7 +71,17 @@ def read_docx(file_path):
     full_text = []
     for para in doc.paragraphs:
         full_text.append(para.text)
-    return('\n'.join(full_text))
+    return '\n'.join(full_text)
+
+
+def read_doc(file_path):
+    word = win32com.client.Dispatch("Word.Application")
+    word.visible = False
+    doc = word.Documents.Open(file_path)
+    doc_content = doc.Content.Text
+    doc.Close(False)
+    word.Quit()
+    return doc_content
 
 
 def flatten_json(nested_json, prefix=''):
@@ -111,6 +99,7 @@ def flatten_json(nested_json, prefix=''):
         else:
             flat_dict[new_key] = value
     return flat_dict
+
 
 def download_json(json_data, auction_folder, auction_id):
     path = os.path.join(auction_folder, f"response_{auction_id}.json")
@@ -133,8 +122,10 @@ async def process_auction_page(auction_id):
             if not os.path.exists(auction_folder):
                 os.makedirs(auction_folder)
             for file in files:
-                print()
-                a = await save_to_txt(auction_folder, file["name"], auction_folder, auction_id)
+                txt_file_path = auction_folder + file["name"].split('.')[0] + ".txt"
+                with open(txt_file_path, "w", encoding="utf-8") as txt_file:
+                    text = await save_to_txt(auction_folder, file["name"], file["id"])
+                    txt_file.write(text)
             flattened_data = flatten_json(data)
             download_json(flattened_data, auction_folder, auction_id)
         except json.JSONDecodeError:
