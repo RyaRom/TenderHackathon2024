@@ -3,7 +3,6 @@ from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes, ConversationHandler
 from telegram.ext import ApplicationBuilder, CommandHandler
 
-from analyzer import scan_files
 from parsing.WebParser import process_auction_page
 from analyzer import checker
 
@@ -81,7 +80,7 @@ async def receive_option(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 async def analyze_ulr(update: Update, context: ContextTypes.DEFAULT_TYPE):
     auction_id = context.user_data.get("url").split("/")[-1]
-    result = checker(auction_id, [False, False, False, False, False, False])
+    result = checker(auction_id, [False, False, False, [True, []], False, False])
     selected = context.user_data.get("selected_options")
     print(f'selected = {selected}')
     # result = await scan_files(auction_id, context.user_data.get("selected_options"))
@@ -105,11 +104,12 @@ async def analyze_ulr(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await sendMessage("Условие 3 не выполнено,  наличие сертификатов/лицензий соответствует документам", update)
 
-    # if selected[3]:
-    #     if result[3]:
-    #         await sendMessage("Условие 1 выполнено, названия закупок совпадают", update)
-    #     else:
-    #         await sendMessage("Условие 1 не выполнено, названия закупок не совпадают", update)
+# sel[3][1] = text
+    if selected[3]:
+        if result[3][0]:
+            await sendMessage("Условие 4 выполнено, график поставок совпадает", update)
+        else:
+            await sendMessage(f"Условие 4 не выполнено, {selected[3][1]}", update)
 
     if selected[4]:
         if result[4]:

@@ -81,8 +81,25 @@ def checker(idloc, prams):
 
     # TODO модель в 4 и 6
 
-    # deliveries = main_dict["deliveries"]
-    # for delivery in deliveries:
+    # 4 условие
+    deliveries = main_dict["deliveries"]
+    prams[3] = [True, []]
+    conditions = [] # str
+    for delivery in deliveries:
+        delPlace = delivery["deliveryPlace"]
+        for file in files:
+            if delPlace not in file:
+                conditions.append(f"Не совпадает адрес поставки {delPlace}")
+                prams[0] = prams[0] and False
+        items = delivery["items"]
+        for item in items:
+            name = item["name"]
+            print(f"name = {name}")
+            for file in files:
+                if delPlace not in file:
+                    conditions.append(f"Не совпадает названия этапов поставки {name}")
+                    prams[0] = prams[0] and False
+    prams[3][1] = conditions
 
     # 5 условие
     prompt = str(main_dict["startCost"])
