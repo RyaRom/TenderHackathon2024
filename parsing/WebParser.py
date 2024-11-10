@@ -9,16 +9,15 @@ import win32com.client
 # Маска для подстановки URL ссылки
 BASE_URL = "https://zakupki.mos.ru/newapi/api/Auction/Get?auctionId="
 
+
 # Функция для сохранения данных в текстовый файл
-def save_to_txt(folder, file_name, text):
+async def save_to_txt(folder, file_name, text, file_id):
     # Создаем .txt файл с именем на основе оригинального имени файла
-    txt_file_name = file_name.split('.')[0] + ".txt"
-    txt_file_path = os.path.join(folder, txt_file_name)
+    txt_file_path = folder + file_name.split('.')[0] + ".txt"
 
     # Сохранение текста, если он передан
-    if text:
-        with open(txt_file_path, "w", encoding="utf-8") as txt_file:
-            txt_file.write(text)
+    with open(txt_file_path, "w", encoding="utf-8") as txt_file:
+        txt_file.write(text)
 
     print("downloading")
     file_url = f"https://zakupki.mos.ru/newapi/api/FileStorage/Download?id={file_id}"
@@ -28,16 +27,17 @@ def save_to_txt(folder, file_name, text):
 
     if response.status_code == 200:
         file_content = response.content
-        file_path = os.path.join(AUCTION_FOLDER, file_name.replace(" ", ""))
+        file_path = folder + file_name.replace(" ", "")
 
         # Define the file type using the magic library (determine file MIME type)
         mime_type = magic.from_buffer(file_content, mime=True)
+        print(mime_type)
 
         # Save the file
         with open(file_path, 'wb') as file:
             file.write(file_content)
 
-        print(f"[INFO]: File {file_name} saved in folder {AUCTION_FOLDER}.")
+        print(f"[INFO]: File {file_name} saved in folder {folder}.")
 
         # Output the file content based on its type
         if mime_type == 'text/plain':
@@ -51,20 +51,18 @@ def save_to_txt(folder, file_name, text):
         elif mime_type in ['application/vnd.ms-word', 'application/msword']:
             print("[INFO]: DOC file detected")
             text = read_doc(file_path)
-            save_to_txt(AUCTION_FOLDER, file_name, text)
+            return text
 
         elif mime_type in ['application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                            'application/msword']:
             print("[INFO]: DOCX file detected. Extracting text...")
             text = read_docx(file_path)
             return text
-            #save_to_txt(auction_folder, file_name, text)
 
         else:
             print(f"[INFO]: Unsupported file type {mime_type}.")
     else:
         print(f"[ERROR]: Failed to download file {file_name}. Status code: {response.status_code}")
-
 
 
 def read_doc(file_path):
@@ -87,9 +85,8 @@ def read_pdf(file_content):
         text = ""
         for page in reader.pages:
             text += page.extract_text()
-        return(text)
-
-    os.remove("temp.pdf")  # Clean up temporary file
+    os.remove("temp.pdf")
+    return text
 
 
 def read_docx(file_path):
@@ -126,9 +123,6 @@ def download_json(json_data, auction_folder, auction_id):
 # Процедура получения данных для страницы аукциона
 async def process_auction_page(auction_id):
     ''' Локальные переменные для функции '''
-    auction_folder = ""
-    # Айди аукциона
-    auction_id = 0
     print(f"[INFO]: Processing auction with ID: {auction_id}")
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{BASE_URL}{auction_id}")
@@ -136,17 +130,14 @@ async def process_auction_page(auction_id):
         try:
             data = response.json()
             files = data.get("files", [])
-            auction_folder = os.path.join("downloaded_files", str(auction_id))
+            auction_folder = "downloaded_files" + str(auction_id)
             if not os.path.exists(auction_folder):
                 os.makedirs(auction_folder)
-
             for file in files:
-                a = await extrude_text(file["id"], file["name"], auction_folder)
-                print(a)
+                print()
+                a = await save_to_txt(auction_folder, file["name"], auction_folder, auction_id)
             flattened_data = flatten_json(data)
-            # json_to_csv(flattened_data, auction_folder, auction_id)
             download_json(flattened_data, auction_folder, auction_id)
-
         except json.JSONDecodeError:
             print(f"[ERROR]: Invalid answer from auction {auction_id}. The response is not valid JSON.")
     else:
@@ -155,9 +146,7 @@ async def process_auction_page(auction_id):
 
 async def main():
     # may be modified for async parsing
-    await process_auction_page(9869986)
-    for i in range(9281689,9281680,-1):
-        await process_auction_page(i)
+    await process_auction_page(9864533)
     print("[INFO]: Processing completed.")
 
 
