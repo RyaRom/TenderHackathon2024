@@ -18,7 +18,6 @@ async def save_to_txt(folder, file_name, text, file_id):
     # Сохранение текста, если он передан
     with open(txt_file_path, "w", encoding="utf-8") as txt_file:
         txt_file.write(text)
-
     print("downloading")
     file_url = f"https://zakupki.mos.ru/newapi/api/FileStorage/Download?id={file_id}"
 
