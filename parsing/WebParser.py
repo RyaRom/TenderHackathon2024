@@ -1,26 +1,23 @@
 import os
-
+import docx
 import asyncio
 import httpx
 import json
-import csv
-import win32com.client
-
-base_url = "https://zakupki.mos.ru/newapi/api/Auction/Get?auctionId="
-
-import os
-import httpx
-import docx
 from PyPDF2 import PdfReader
 import magic  # To determine file type by MIME
+import win32com.client
+# Маска для подстановки URL ссылки
+BASE_URL = "https://zakupki.mos.ru/newapi/api/Auction/Get?auctionId="
 
+# Функция для сохранения данных в текстовый файл
 def save_to_txt(folder, file_name, text):
-    # Create .txt file name based on original file name
+    # Создаем .txt файл с именем на основе оригинального имени файла
     txt_file_name = file_name.split('.')[0] + ".txt"
     txt_file_path = os.path.join(folder, txt_file_name)
 
-    with open(txt_file_path, "w", encoding="utf-8") as txt_file:
-        if text:
+    # Сохранение текста, если он передан
+    if text:
+        with open(txt_file_path, "w", encoding="utf-8") as txt_file:
             txt_file.write(text)
 
     print("downloading")
@@ -31,7 +28,7 @@ def save_to_txt(folder, file_name, text):
 
     if response.status_code == 200:
         file_content = response.content
-        file_path = os.path.join(auction_folder, file_name.replace(" ", ""))
+        file_path = os.path.join(AUCTION_FOLDER, file_name.replace(" ", ""))
 
         # Define the file type using the magic library (determine file MIME type)
         mime_type = magic.from_buffer(file_content, mime=True)
@@ -40,24 +37,21 @@ def save_to_txt(folder, file_name, text):
         with open(file_path, 'wb') as file:
             file.write(file_content)
 
-        print(f"[INFO]: File {file_name} saved in folder {auction_folder}.")
+        print(f"[INFO]: File {file_name} saved in folder {AUCTION_FOLDER}.")
 
         # Output the file content based on its type
         if mime_type == 'text/plain':
             text = file_content.decode('utf-8')
             return text
-            #save_to_txt(auction_folder, file_name, text)
 
         elif mime_type == 'application/pdf':
             print("[INFO]: PDF file detected. Extracting text...")
-            text = read_pdf(file_content)
-            return text
-            #save_to_txt(auction_folder, file_name, text)
+            return read_pdf(file_content)
 
         elif mime_type in ['application/vnd.ms-word', 'application/msword']:
             print("[INFO]: DOC file detected")
             text = read_doc(file_path)
-            save_to_txt(auction_folder, file_name, text)
+            save_to_txt(AUCTION_FOLDER, file_name, text)
 
         elif mime_type in ['application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                            'application/msword']:
@@ -129,12 +123,15 @@ def download_json(json_data, auction_folder, auction_id):
     print(f"[INFO]: Data for auction {auction_id} saved as CSV in {auction_folder}.")
 
 
+# Процедура получения данных для страницы аукциона
 async def process_auction_page(auction_id):
-    print(f"[INFO]: Processing auction with ID {auction_id}")
-    auction_url = f"{base_url}{auction_id}"
+    ''' Локальные переменные для функции '''
+    auction_folder = ""
+    # Айди аукциона
+    auction_id = 0
+    print(f"[INFO]: Processing auction with ID: {auction_id}")
     async with httpx.AsyncClient() as client:
-        response = await client.get(auction_url)
-
+        response = await client.get(f"{BASE_URL}{auction_id}")
     if response.status_code == 200:
         try:
             data = response.json()
@@ -144,7 +141,7 @@ async def process_auction_page(auction_id):
                 os.makedirs(auction_folder)
 
             for file in files:
-                a=await extrude_text(file["id"], file["name"], auction_folder)
+                a = await extrude_text(file["id"], file["name"], auction_folder)
                 print(a)
             flattened_data = flatten_json(data)
             # json_to_csv(flattened_data, auction_folder, auction_id)
