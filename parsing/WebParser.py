@@ -84,28 +84,11 @@ def read_doc(file_path):
     return doc_content
 
 
-def flatten_json(nested_json, prefix=''):
-    flat_dict = {}
-    for key, value in nested_json.items():
-        new_key = f"{prefix}{key}" if prefix == '' else f"{prefix}-{key}"
-        if value is None:
-            continue
-
-        if isinstance(value, dict):
-            flat_dict.update(flatten_json(value, new_key))
-        elif isinstance(value, list):
-            for i, item in enumerate(value):
-                flat_dict.update(flatten_json(item, f"{new_key}-{i}"))
-        else:
-            flat_dict[new_key] = value
-    return flat_dict
-
-
 def download_json(json_data, auction_folder, auction_id):
-    path = os.path.join(auction_folder, f"response_{auction_id}.json")
+    path = "C:\\Programming\\ParserTenderhack\\parsing\\test\\" + f"response_{auction_id}.json"
     with open(path, mode='w', encoding='utf-8') as file:
         json.dump(json_data, file, indent=4, ensure_ascii=False)
-    print(f"[INFO]: Data for auction {auction_id} saved as CSV in {auction_folder}.")
+    print(f"[INFO]: Data for auction {auction_id} saved as JSON in {auction_folder}.")
 
 
 # Процедура получения данных для страницы аукциона
@@ -118,7 +101,7 @@ async def process_auction_page(auction_id):
         try:
             data = response.json()
             files = data.get("files", [])
-            auction_folder = "downloaded_files" + str(auction_id)
+            auction_folder = "C:/Programming/ParserTenderhack/parsing/test/downloaded_files" + str(auction_id)
             if not os.path.exists(auction_folder):
                 os.makedirs(auction_folder)
             for file in files:
@@ -126,8 +109,7 @@ async def process_auction_page(auction_id):
                 with open(txt_file_path, "w", encoding="utf-8") as txt_file:
                     text = await save_to_txt(auction_folder, file["name"], file["id"])
                     txt_file.write(text)
-            flattened_data = flatten_json(data)
-            download_json(flattened_data, auction_folder, auction_id)
+            download_json(data, auction_folder, auction_id)
         except json.JSONDecodeError:
             print(f"[ERROR]: Invalid answer from auction {auction_id}. The response is not valid JSON.")
     else:

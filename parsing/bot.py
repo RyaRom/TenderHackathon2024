@@ -5,8 +5,9 @@ from telegram.ext import ApplicationBuilder, CommandHandler
 
 from analyzer import scan_files
 from parsing.WebParser import process_auction_page
+from analyzer import checker
 
-BOT_TOKEN = "7781043930:AAElBpRaGjjV6didS-WExBNTvfeTBdGE1jk"
+BOT_TOKEN = "7567933002:AAFhchpry5MWvlAmqQbR5Tm-YrfO4MtXThQ"
 BOT_MENU = "Выберете параметры для проверки котировочной сессии на корректность:\n     1. Проверка наименования закупки \n     2. Проверка Обеспечения исполнения контракта\n     3. Проверка Наличие сертификатов/лицензий\n     4. Проверка Графика поставки и Этапов поставки\n     5. Проверка Максимального и Начального значения цены контракта\n     6. Проверка Характеристики спецификации закупки\n"
 
 AWAIT_URL = 1
@@ -35,6 +36,8 @@ async def receive_url(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     await update.message.reply_text(BOT_MENU, reply_markup=reply_markup)
     await update.message.reply_text("Выберите параметры, нажмите Начать чтобы продолжить:",
                                     reply_markup=reply_markup)
+    auction_id = context.user_data.get("url").split("/")[-1]
+    await process_auction_page(auction_id)
     return AWAIT_OPTION
 
 
@@ -49,13 +52,14 @@ async def receive_option(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
         url = context.user_data.get("url")
         await update.message.reply_text(f"Вы выбрали параметры {selected_options} для URL: {url}")
-        await analyze_ulr(context)
+        await analyze_ulr(update= update, context=context)
         await update.message.reply_text("Введите новый URL:")
         return AWAIT_URL
 
     elif option == "Все":
         selected_options = ["1", "2", "3", "4", "5", "6"]
         url = context.user_data.get("url")
+        context.user_data["selected_options"] = [True, True, True, True, True ,True]
         await update.message.reply_text(f"Вы выбрали параметры {selected_options} для URL: {url}")
         await analyze_ulr(update, context)
         await update.message.reply_text("Введите новый URL:")
@@ -77,12 +81,52 @@ async def receive_option(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 async def analyze_ulr(update: Update, context: ContextTypes.DEFAULT_TYPE):
     auction_id = context.user_data.get("url").split("/")[-1]
-    print(auction_id)
-    await process_auction_page(auction_id)
-    result = await scan_files(auction_id, context.user_data.get("selected_options"))
-    for index, res in result:
-        if res:
-            await update.message.reply_text(f"Требование {index + 1} выполнено")
+    result = checker(auction_id, [False, False, False, False, False, False])
+    selected = context.user_data.get("selected_options")
+    print(f'selected = {selected}')
+    # result = await scan_files(auction_id, context.user_data.get("selected_options"))
+    # for index in result:
+    #     await update.message.reply_text(f"Требование {index + 1} выполнено")
+    if selected[0]:
+        if result[0]:
+            await sendMessage("Условие 1 выполнено, названия закупок совпадают", update)
+        else:
+            await sendMessage("Условие 1 не выполнено, названия закупок не совпадают", update)
+
+    if selected[1]:
+        if result[1]:
+            await sendMessage("Условие 2 выполнено, Обеспечение исполнения контракта имеется", update)
+        else:
+            await sendMessage("Условие 2 не выполнено, в документах нет обеспечение исполнения контракта", update)
+
+    if selected[2]:
+        if result[2]:
+            await sendMessage("Условие 3 выполнено, наличие сертификатов/лицензий соответствует документам", update)
+        else:
+            await sendMessage("Условие 3 не выполнено,  наличие сертификатов/лицензий соответствует документам", update)
+
+    # if selected[3]:
+    #     if result[3]:
+    #         await sendMessage("Условие 1 выполнено, названия закупок совпадают", update)
+    #     else:
+    #         await sendMessage("Условие 1 не выполнено, названия закупок не совпадают", update)
+
+    if selected[4]:
+        if result[4]:
+            await sendMessage("Условие 5 выполнено, начальная и максимальная цены соответствуют", update)
+        else:
+            await sendMessage("Условие 5 не выполнено, начальная и максимальная цены соответствуют", update)
+
+    # if selected[5]:
+    #     if result[5]:
+    #         await sendMessage("Условие 1 выполнено, названия закупок совпадают", update)
+    #     else:
+    #         await sendMessage("Условие 1 не выполнено, названия закупок не совпадают", update)
+
+
+async def sendMessage(text: str, update: Update):
+    await update.message.reply_text(text)
+
 
 
 def main():

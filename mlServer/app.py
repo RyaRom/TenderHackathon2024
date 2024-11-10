@@ -14,7 +14,7 @@ class GenerateRequest(BaseModel):
     system_prompt: str
     user_prompt: str
     max_tokens: int = 100
-
+# 1 3 12
 
 @app.post("/generate")
 async def generate_text(request: GenerateRequest):
